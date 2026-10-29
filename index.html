@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StudyMate AI — Your notes. Your AI. Your success.</title>
+  <meta name="description" content="StudyMate AI turns your notes into summaries, quizzes and flashcards.">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <!-- Apply saved theme before the page paints (prevents a flash) -->
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem('sm_theme') || 'light'; } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <div class="brand">
+        <img src=" logo.svg" alt="" width="30" height="30">
+        <span>StudyMate AI</span>
+      </div>
+      <nav>
+        <button class="nav-btn active" data-view="dashboard"><span class="ic">▦</span> Dashboard</button>
+        <button class="nav-btn" data-view="study" data-tab="summary"><span class="ic">✦</span> AI Study Room</button>
+        <button class="nav-btn" data-view="study" data-tab="summary" data-alias="summaries"><span class="ic">☰</span> My Summaries</button>
+        <button class="nav-btn" data-view="study" data-tab="quiz" data-alias="quiz"><span class="ic">?</span> Quiz Practice</button>
+        <button class="nav-btn" data-view="study" data-tab="cards" data-alias="cards"><span class="ic">❏</span> Flashcards</button>
+        <button class="nav-btn" data-view="history"><span class="ic">◷</span> Study History</button>
+        <button class="nav-btn" data-view="settings"><span class="ic">⚙</span> Settings</button>
+      </nav>
+      <div class="sidebar-foot">
+        <button class="btn ghost full" id="themeToggle" aria-label="Toggle dark or light mode">
+          <span id="themeIcon">☾</span> <span id="themeLabel">Dark mode</span>
+        </button>
+        <p class="tagline">Your notes. Your AI. Your success.</p>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+
+    <!-- ============ MAIN ============ -->
+    <div class="content">
+      <header class="topbar">
+        <button class="icon-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">☰</button>
+        <strong>StudyMate AI</strong>
+      </header>
+
+      <main>
+        <!-- ===== DASHBOARD ===== -->
+        <section class="view active" id="view-dashboard" aria-labelledby="dashTitle">
+          <div class="banner" aria-hidden="true">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0 0H1200V70C1000 130 850 20 650 60S250 110 0 50Z" fill="currentColor"/></svg>
+          </div>
+          <h1 id="dashTitle">Your learning space.</h1>
+          <p class="sub">Turn your notes into knowledge.</p>
+
+          <form class="card notes-card" id="notesForm" novalidate>
+            <label for="notes" class="label">Paste your notes or type a study topic</label>
+            <textarea id="notes" rows="8" placeholder="e.g. Photosynthesis is the process by which plants convert light energy into chemical energy…"></textarea>
+            <div class="row between small">
+              <span id="charCount" aria-live="polite">0 / 12000</span>
+              <button type="button" class="link-btn" id="exampleBtn">Try an example</button>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label for="styleSel" class="label">Explanation style</label>
+                <select id="styleSel">
+                  <option value="eli10">Explain Like I'm 10</option>
+                  <option value="exam" selected>Exam-focused</option>
+                  <option value="detailed">Detailed</option>
+                </select>
+              </div>
+              <div>
+                <label for="diffSel" class="label">Difficulty</label>
+                <select id="diffSel">
+                  <option value="easy">Easy</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+            </div>
+            <div id="formMsg" class="msg" role="alert" hidden></div>
+            <button type="submit" class="btn primary" id="generateBtn">Generate Study Material</button>
+          </form>
+
+          <div class="cards4">
+            <button class="pastel pink" data-go="summary"><h3>AI Summaries</h3><p>Clear, structured overviews.</p></button>
+            <button class="pastel beige" data-go="quiz"><h3>Smart Quiz</h3><p>5 questions with explanations.</p></button>
+            <button class="pastel sage" data-go="cards"><h3>Flashcards</h3><p>Flip, review, mark as known.</p></button>
+            <button class="pastel lav" data-go="history"><h3>Study History</h3><p>Reopen past sessions.</p></button>
+          </div>
+
+          <div class="grid-2 lower">
+            <div class="card">
+              <h2>Recent study sessions</h2>
+              <ul class="list" id="recentList"></ul>
+            </div>
+            <div class="card">
+              <h2>Study progress</h2>
+              <div id="progressBox"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== AI STUDY ROOM ===== -->
+        <section class="view" id="view-study" aria-labelledby="studyTitle">
+          <h1 id="studyTitle">AI Study Room</h1>
+          <p class="sub" id="studySub">Your generated material appears here.</p>
+
+          <div id="studyEmpty" class="card empty">
+            <p>No study material yet. Add some notes on the dashboard, or open a past session from History.</p>
+            <button class="btn primary" data-view-go="dashboard">Go to dashboard</button>
+          </div>
+
+          <div id="studyWrap" hidden>
+            <div class="tabs" role="tablist" aria-label="Study material">
+              <button role="tab" class="tab active" id="tab-summary" data-tab="summary" aria-selected="true">Summary</button>
+              <button role="tab" class="tab" id="tab-quiz" data-tab="quiz" aria-selected="false">Quiz</button>
+              <button role="tab" class="tab" id="tab-cards" data-tab="cards" aria-selected="false">Flashcards</button>
+            </div>
+
+            <div class="panel active" id="panel-summary" role="tabpanel" aria-labelledby="tab-summary">
+              <div class="card">
+                <div class="toolbar">
+                  <button class="btn" id="copyBtn">Copy Summary</button>
+                  <button class="btn" id="downloadBtn">Download .txt</button>
+                  <button class="btn" id="speakBtn">▶ Read Aloud</button>
+                  <button class="btn" id="stopBtn">■ Stop</button>
+                  <button class="btn" id="regenBtn">↻ Regenerate</button>
+                </div>
+                <article id="summaryBody" class="prose"></article>
+              </div>
+            </div>
+
+            <div class="panel" id="panel-quiz" role="tabpanel" aria-labelledby="tab-quiz">
+              <div class="card" id="quizBody"></div>
+            </div>
+
+            <div class="panel" id="panel-cards" role="tabpanel" aria-labelledby="tab-cards">
+              <div id="cardsBody"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== HISTORY ===== -->
+        <section class="view" id="view-history" aria-labelledby="histTitle">
+          <h1 id="histTitle">Study History</h1>
+          <p class="sub">Everything you've generated, saved in this browser.</p>
+          <div class="row gap">
+            <input type="search" id="histSearch" placeholder="Search history…" aria-label="Search history">
+            <button class="btn danger" id="clearHistBtn">Clear all</button>
+          </div>
+          <ul class="list sessions" id="historyList"></ul>
+        </section>
+
+        <!-- ===== SETTINGS ===== -->
+        <section class="view" id="view-settings" aria-labelledby="setTitle">
+          <h1 id="setTitle">Settings</h1>
+          <p class="sub">Configure your AI provider and preferences.</p>
+
+          <div class="card">
+            <h2>AI provider</h2>
+            <p class="small muted">Provider: <strong>Google Gemini API</strong> (free tier available).
+              Get a key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</p>
+            <label for="apiKey" class="label">API key</label>
+            <div class="row gap">
+              <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="Paste your Gemini API key">
+              <button class="btn" id="showKeyBtn" type="button">Show</button>
+            </div>
+            <label for="modelName" class="label">Model name</label>
+            <input type="text" id="modelName" spellcheck="false">
+            <p class="small muted">Model names change over time. If you see a “model not found” error, check the
+              <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noopener">official model list</a>.</p>
+            <div class="row gap">
+              <button class="btn primary" id="saveKeyBtn">Save</button>
+              <button class="btn danger" id="removeKeyBtn">Remove key</button>
+            </div>
+            <p class="notice small">⚠ Your key is stored in this browser's localStorage. localStorage is <strong>not secure</strong>:
+              any script on the page or anyone using this device can read it. Use a free key you can revoke, and never use this on a shared computer.</p>
+          </div>
+
+          <div class="card">
+            <h2>Preferences</h2>
+            <div class="grid-2">
+              <div>
+                <label for="prefStyle" class="label">Default explanation style</label>
+                <select id="prefStyle">
+                  <option value="eli10">Explain Like I'm 10</option>
+                  <option value="exam">Exam-focused</option>
+                  <option value="detailed">Detailed</option>
+                </select>
+              </div>
+              <div>
+                <label for="prefTheme" class="label">Theme</label>
+                <select id="prefTheme">
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Data</h2>
+            <p class="small muted">Removes all saved study sessions from this browser.</p>
+            <button class="btn danger" id="clearHistBtn2">Clear history</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading" id="loading" hidden role="status" aria-live="polite">
+    <div class="spinner"></div><p>Creating your study material…</p>
+  </div>
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
